@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Predictor - X Education</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .predict-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+        }
+
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            color: #667eea;
+            cursor: help;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .info-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Lead Prediction System</h1>
+            <p>Predict lead conversion probability using advanced machine learning</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2>📊 Input Lead Information</h2>
+                <form id="leadForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="doNotEmail">Do Not Email <span class="info-tooltip">ℹ<span class="tooltip-text">0 = Can email, 1 = Do not email</span></span></label>
+                            <select id="doNotEmail" name="doNotEmail" required>
+                                <option value="0">No (Can Email)</option>
+                                <option value="1">Yes (Do Not Email)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="totalVisits">Total Visits</label>
+                            <input type="number" id="totalVisits" name="totalVisits" min="0" value="8" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="totalTimeSpent">Total Time Spent (seconds)</label>
+                            <input type="number" id="totalTimeSpent" name="totalTimeSpent" min="0" value="286" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pageViewsPerVisit">Page Views Per Visit</label>
+                            <input type="number" id="pageViewsPerVisit" name="pageViewsPerVisit" min="0" step="0.1" value="8" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activityIndex">Activity Index</label>
+                            <select id="activityIndex" name="activityIndex" required>
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profileIndex">Profile Index</label>
+                            <select id="profileIndex" name="profileIndex" required>
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activityScore">Activity Score</label>
+                            <input type="number" id="activityScore" name="activityScore" min="0" value="14" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profileScore">Profile Score</label>
+                            <input type="number" id="profileScore" name="profileScore" min="0" value="16" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leadOrigin">Lead Origin</label>
+                            <select id="leadOrigin" name="leadOrigin" required>
+                                <option value="API" selected>API</option>
+                                <option value="Landing Page">Landing Page</option>
+                                <option value="Lead Add Form">Lead Add Form</option>
+                                <option value="Lead Import">Lead Import</option>
+                                <option value="Quick Add Form">Quick Add Form</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leadSource">Lead Source</label>
+                            <select id="leadSource" name="leadSource" required>
+                                <option value="Direct" selected>Direct</option>
+                                <option value="Google">Google</option>
+                                <option value="Organic Search">Organic Search</option>
+                                <option value="Olark Chat">Olark Chat</option>
+                                <option value="Reference">Reference</option>
+                                <option value="Welingak Website">Welingak Website</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <select id="country" name="country" required>
+                                <option value="India" selected>India</option>
+                                <option value="United States">United States</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="Australia">Australia</option>
+                                <option value="Canada">Canada</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hearAbout">How did you hear about X Education?</label>
+                            <select id="hearAbout" name="hearAbout" required>
+                                <option value="Advertisements_Media" selected>Advertisements/Media</option>
+                                <option value="Search Engine">Search Engine</option>
+                                <option value="Social Media">Social Media</option>
+                                <option value="Word Of Mouth">Word Of Mouth</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="occupation">Current Occupation</label>
+                            <select id="occupation" name="occupation" required>
+                                <option value="Housewife" selected>Housewife</option>
+                                <option value="Student">Student</option>
+                                <option value="Working Professional">Working Professional</option>
+                                <option value="Businessman">Businessman</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tags">Tags</label>
+                            <select id="tags" name="tags" required>
+                                <option value="Ineligible" selected>Ineligible</option>
+                                <option value="Interested">Interested</option>
+                                <option value="Not Interested">Not Interested</option>
+                                <option value="Converted">Converted</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leadQuality">Lead Quality</label>
+                            <select id="leadQuality" name="leadQuality" required>
+                                <option value="High" selected>High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leadProfile">Lead Profile</label>
+                            <select id="leadProfile" name="leadProfile" required>
+                                <option value="Other" selected>Other</option>
+                                <option value="Potential Lead">Potential Lead</option>
+                                <option value="Hot Lead">Hot Lead</option>
+                                <option value="Cold Lead">Cold Lead</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="predict-btn">🔮 Predict Lead Conversion</button>
+                </form>
+            </div>
+
+
+        </div>
+    </div>
+
+    <script>
+        // Simulate prediction functionality
+        document.getElementById('leadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            // Here you can add your API call to the Python backend
+            console.log('Form data submitted:', data);
+            
+            // Show success message or handle the prediction
+            document.getElementById('leadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                Do_Not_Email: Number(document.getElementById('Do_Not_Email').value),
+                TotalVisits: Number(document.getElementById('TotalVisits').value),
+                Total_Time_Spent_on_Website: Number(document.getElementById('Total_Time_Spent_on_Website').value),
+                Page_Views_Per_Visit: Number(document.getElementById('Page_Views_Per_Visit').value),
+                Asymmetrique_Activity_Score: Number(document.getElementById('Activity_Score').value),
+                Asymmetrique_Profile_Score: Number(document.getElementById('Profile_Score').value),
+                Asymmetrique_Activity_Index: document.getElementById('Activity_Index').value,
+                Asymmetrique_Profile_Index: document.getElementById('Profile_Index').value,
+                Lead_Origin: document.getElementById('Lead_Origin').value,
+                Lead_Source: document.getElementById('Lead_Source').value,
+                Country: document.getElementById('Country').value,
+                How_did_you_hear_about_X_Education: document.getElementById('How_did_you_hear_about_X_Education').value,
+                What_is_your_current_occupation: document.getElementById('What_is_your_current_occupation').value,
+                Tags: document.getElementById('Tags').value,
+                Lead_Quality: document.getElementById('Lead_Quality').value,
+                Lead_Profile: document.getElementById('Lead_Profile').value
+                };
+
+                const resBox = document.getElementById('result');
+                resBox.style.display = 'block';
+                resBox.textContent = 'Submitting...';
+
+                try {
+                    const res = await fetch("http://127.0.0.1:5000/predict", {   // adjust port if needed
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || HTTP ${res.status});
+                        resBox.innerHTML = <strong>Prediction:</strong> ${data.prediction};
+                    } catch (err) {
+                        resBox.innerHTML = <strong>Error:</strong> ${err.message};
+                      }
+                    });
+
+        // Add some interactive effects
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            element.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

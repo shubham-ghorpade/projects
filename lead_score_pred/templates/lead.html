@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lead Conversion Predictor</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    body { margin: 0; background: #0b0f19; color: #e6e9ef; }
+    .wrap { max-width: 880px; margin: 40px auto; padding: 24px; }
+    .card { background: #121827; border: 1px solid #1f2937; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+    h1 { margin: 0 0 8px; font-size: 26px; }
+    p.mute { margin-top: 0; color: #94a3b8; }
+    form { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 16px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; font-size: 13px; color: #9ca3af; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: #e5e7eb; }
+    input:focus, select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,0.15); }
+    button { padding: 12px 18px; border-radius: 12px; border: 0; background: #2563eb; color: white; font-weight: 600; cursor: pointer; }
+    button:hover { filter: brightness(1.05); }
+    .row { display: flex; gap: 12px; align-items: center; }
+    .result { margin-top: 18px; padding: 14px; border-radius: 12px; background: #0f172a; border: 1px solid #334155; display: none; }
+    code { background: #0b1220; padding: 2px 6px; border-radius: 6px; }
+    small.hint { color: #94a3b8; display: block; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Lead Conversion Predictor</h1>
+      <p class="mute">Enter values and submit to call your API at <code>/predict</code>. Make sure your backend reads the same JSON keys.</p>
+
+      <form id="leadForm">
+        <div class="full"><strong>Numerical fields</strong></div>
+        <div>
+          <label for="Do_Not_Email">Do_Not_Email (0 or 1)</label>
+          <input id="Do_Not_Email" type="number" placeholder="0" required />
+        </div>
+        <div>
+          <label for="TotalVisits">TotalVisits</label>
+          <input id="TotalVisits" type="number" step="1" placeholder="8" required />
+        </div>
+        <div>
+          <label for="Total_Time_Spent_on_Website">Total_Time_Spent_on_Website (seconds)</label>
+          <input id="Total_Time_Spent_on_Website" type="number" step="1" placeholder="286" required />
+        </div>
+        <div>
+          <label for="Page_Views_Per_Visit">Page_Views_Per_Visit</label>
+          <input id="Page_Views_Per_Visit" type="number" step="0.01" placeholder="8" required />
+        </div>
+        <div>
+          <label for="Asymmetrique_Activity_Score">Asymmetrique_Activity_Score</label>
+          <input id="Asymmetrique_Activity_Score" type="number" step="1" placeholder="14" required />
+        </div>
+        <div>
+          <label for="Asymmetrique_Profile_Score">Asymmetrique_Profile_Score</label>
+          <input id="Asymmetrique_Profile_Score" type="number" step="1" placeholder="16" required />
+        </div>
+
+        <div class="full" style="margin-top:8px;"><strong>Categorical fields</strong></div>
+        <div>
+          <label for="Asymmetrique_Activity_Index">Asymmetrique_Activity_Index</label>
+          <input id="Asymmetrique_Activity_Index" placeholder="Low / Medium / High" required />
+        </div>
+        <div>
+          <label for="Asymmetrique_Profile_Index">Asymmetrique_Profile_Index</label>
+          <input id="Asymmetrique_Profile_Index" placeholder="Low / Medium / High" required />
+        </div>
+        <div>
+          <label for="Lead_Origin">Lead_Origin</label>
+          <input id="Lead_Origin" placeholder="API / Landing_Page / Lead_Add_Form" required />
+        </div>
+        <div>
+          <label for="Lead_Source">Lead_Source</label>
+          <input id="Lead_Source" placeholder="Direct / Google / Organic_Search / Welingak_website" required />
+        </div>
+        <div>
+          <label for="Country">Country</label>
+          <input id="Country" placeholder="India / USA / UAE / ..." required />
+        </div>
+        <div>
+          <label for="How_did_you_hear_about_X_Education">How_did_you_hear_about_X_Education</label>
+          <input id="How_did_you_hear_about_X_Education" placeholder="Advertisements_Media / Word_Of_Mouth / Online_Search / ..." required />
+        </div>
+        <div>
+          <label for="What_is_your_current_occupation">What_is_your_current_occupation</label>
+          <input id="What_is_your_current_occupation" placeholder="Student / Working_Professional / Housewife / ..." required />
+        </div>
+        <div>
+          <label for="Tags">Tags</label>
+          <input id="Tags" placeholder="Closed_by_Pitch / Ineligible / ... " required />
+        </div>
+        <div>
+          <label for="Lead_Quality">Lead_Quality</label>
+          <input id="Lead_Quality" placeholder="High / Low / Not_Sure / ..." required />
+        </div>
+        <div>
+          <label for="Lead_Profile">Lead_Profile</label>
+          <input id="Lead_Profile" placeholder="Other / Select / ..." required />
+        </div>
+
+        <div class="full row" style="margin-top:6px;">
+          <button type="submit">Predict</button>
+          <button type="button" id="prefill">Prefill example</button>
+          <small class="hint">Your API should return a JSON with a numeric <code>prediction</code> or similar field.</small>
+        </div>
+
+        <div id="result" class="result"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function num(v){ const n = Number(v); return Number.isFinite(n) ? n : null; }
+
+    document.getElementById('prefill').addEventListener('click', () => {
+      const ex = {
+        Do_Not_Email: 0,
+        TotalVisits: 8,
+        Total_Time_Spent_on_Website: 286,
+        Page_Views_Per_Visit: 8,
+        Asymmetrique_Activity_Score: 14,
+        Asymmetrique_Profile_Score: 16,
+        Asymmetrique_Activity_Index: 'Medium',
+        Asymmetrique_Profile_Index: 'Medium',
+        Lead_Origin: 'API',
+        Lead_Source: 'Direct',
+        Country: 'India',
+        How_did_you_hear_about_X_Education: 'Advertisements_Media',
+        What_is_your_current_occupation: 'Housewife',
+        Tags: 'Ineligible',
+        Lead_Quality: 'High',
+        Lead_Profile: 'Other'
+      };
+      for (const k in ex) document.getElementById(k).value = ex[k];
+    });
+
+    document.getElementById('leadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        Do_Not_Email: num(document.getElementById('Do_Not_Email').value),
+        TotalVisits: num(document.getElementById('TotalVisits').value),
+        Total_Time_Spent_on_Website: num(document.getElementById('Total_Time_Spent_on_Website').value),
+        Page_Views_Per_Visit: num(document.getElementById('Page_Views_Per_Visit').value),
+        Asymmetrique_Activity_Index: document.getElementById('Asymmetrique_Activity_Index').value.trim(),
+        Asymmetrique_Profile_Index: document.getElementById('Asymmetrique_Profile_Index').value.trim(),
+        Asymmetrique_Activity_Score: num(document.getElementById('Asymmetrique_Activity_Score').value),
+        Asymmetrique_Profile_Score: num(document.getElementById('Asymmetrique_Profile_Score').value),
+        Lead_Origin: document.getElementById('Lead_Origin').value.trim(),
+        Lead_Source: document.getElementById('Lead_Source').value.trim(),
+        Country: document.getElementById('Country').value.trim(),
+        How_did_you_hear_about_X_Education: document.getElementById('How_did_you_hear_about_X_Education').value.trim(),
+        What_is_your_current_occupation: document.getElementById('What_is_your_current_occupation').value.trim(),
+        Tags: document.getElementById('Tags').value.trim(),
+        Lead_Quality: document.getElementById('Lead_Quality').value.trim(),
+        Lead_Profile: document.getElementById('Lead_Profile').value.trim()
+      };
+
+      const resBox = document.getElementById('result');
+      resBox.style.display = 'block';
+      resBox.textContent = 'Submitting...';
+
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Request failed');
+        resBox.innerHTML = '<strong>Prediction:</strong> ' + (data.prediction ?? JSON.stringify(data));
+      } catch (err) {
+        resBox.innerHTML = '<strong>Error:</strong> ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

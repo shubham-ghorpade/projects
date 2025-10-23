@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Predictor - X Education</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .container {
+            max-width: 1200px; margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; text-align: center; padding: 30px;
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 700; }
+        .header p { font-size: 1.1rem; opacity: 0.9; }
+        .main-content { padding: 40px; }
+        .form-section {
+            background: white; border-radius: 15px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .form-section h2 {
+            color: #333; margin-bottom: 25px; font-size: 1.5rem;
+            border-bottom: 3px solid #667eea; padding-bottom: 10px;
+        }
+        .form-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 0.95rem;
+        }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px 15px; border: 2px solid #e1e5e9; border-radius: 10px;
+            font-size: 1rem; transition: all 0.3s ease; background: white;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        .predict-btn {
+            width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 15px 30px; border: none; border-radius: 10px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 20px;
+        }
+        .predict-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.3); }
+        .predict-btn:active { transform: translateY(0); }
+        @media (max-width: 768px) {
+            .main-content { padding: 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 2rem; }
+            .container { margin: 10px; border-radius: 15px; }
+        }
+        .info-tooltip { position: relative; display: inline-block; margin-left: 5px; color: #667eea; cursor: help; }
+        .tooltip-text {
+            visibility: hidden; width: 200px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 6px; padding: 8px; position: absolute; z-index: 1; bottom: 125%; left: 50%;
+            margin-left: -100px; opacity: 0; transition: opacity 0.3s; font-size: 0.8rem;
+        }
+        .info-tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        .alert {
+            padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-weight: 600;
+        }
+        .alert-error { background: #fde8e8; color: #981b1b; border: 2px solid #f8b4b4; }
+        .alert-success { background: #ecfdf5; color: #065f46; border: 2px solid #a7f3d0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Lead Prediction System</h1>
+            <p>Predict lead conversion probability using advanced machine learning</p>
+        </div>
+
+        <div class="main-content">
+            {% if error_text %}
+                <div class="alert alert-error">{{ error_text }}</div>
+            {% endif %}
+            {% if prediction_text %}
+                <div class="alert alert-success">{{ prediction_text }}</div>
+            {% endif %}
+
+            <div class="form-section">
+                <h2>📊 Input Lead Information</h2>
+                <form id="leadForm" action="/predict" method="POST">
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label for="Do_Not_Email">Do Not Email
+                                <span class="info-tooltip">ℹ
+                                    <span class="tooltip-text">0 = Can email, 1 = Do not email</span>
+                                </span>
+                            </label>
+                            <select id="Do_Not_Email" name="Do_Not_Email" required>
+                                <option value="0" {% if form_data['Do_Not_Email'] == '0' %}selected{% endif %}>No (Can Email)</option>
+                                <option value="1" {% if form_data['Do_Not_Email'] == '1' %}selected{% endif %}>Yes (Do Not Email)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="TotalVisits">Total Visits</label>
+                            <input type="number" id="TotalVisits" name="TotalVisits" min="0" value="{{ form_data['TotalVisits'] }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Total_Time_Spent_on_Website">Total Time Spent (seconds)</label>
+                            <input type="number" id="Total_Time_Spent_on_Website" name="Total_Time_Spent_on_Website" min="0" value="{{ form_data['Total_Time_Spent_on_Website'] }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Page_Views_Per_Visit">Page Views Per Visit</label>
+                            <input type="number" id="Page_Views_Per_Visit" name="Page_Views_Per_Visit" min="0" step="0.1" value="{{ form_data['Page_Views_Per_Visit'] }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Asymmetrique_Activity_Index">Activity Index</label>
+                            <select id="Asymmetrique_Activity_Index" name="Asymmetrique_Activity_Index" required>
+                                {% set aidx = form_data['Asymmetrique_Activity_Index'] %}
+                                <option value="Low" {% if aidx == 'Low' %}selected{% endif %}>Low</option>
+                                <option value="Medium" {% if aidx == 'Medium' %}selected{% endif %}>Medium</option>
+                                <option value="High" {% if aidx == 'High' %}selected{% endif %}>High</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Asymmetrique_Profile_Index">Profile Index</label>
+                            <select id="Asymmetrique_Profile_Index" name="Asymmetrique_Profile_Index" required>
+                                {% set pidx = form_data['Asymmetrique_Profile_Index'] %}
+                                <option value="Low" {% if pidx == 'Low' %}selected{% endif %}>Low</option>
+                                <option value="Medium" {% if pidx == 'Medium' %}selected{% endif %}>Medium</option>
+                                <option value="High" {% if pidx == 'High' %}selected{% endif %}>High</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Asymmetrique_Activity_Score">Activity Score</label>
+                            <input type="number" id="Asymmetrique_Activity_Score" name="Asymmetrique_Activity_Score" min="0" value="{{ form_data['Asymmetrique_Activity_Score'] }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Asymmetrique_Profile_Score">Profile Score</label>
+                            <input type="number" id="Asymmetrique_Profile_Score" name="Asymmetrique_Profile_Score" min="0" value="{{ form_data['Asymmetrique_Profile_Score'] }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Lead_Origin">Lead Origin</label>
+                            <select id="Lead_Origin" name="Lead_Origin" required>
+                                {% set lo = form_data['Lead_Origin'] %}
+                                <option value="API" {% if lo == 'API' %}selected{% endif %}>API</option>
+                                <option value="Landing Page" {% if lo == 'Landing Page' %}selected{% endif %}>Landing Page</option>
+                                <option value="Lead Add Form" {% if lo == 'Lead Add Form' %}selected{% endif %}>Lead Add Form</option>
+                                <option value="Lead Import" {% if lo == 'Lead Import' %}selected{% endif %}>Lead Import</option>
+                                <option value="Quick Add Form" {% if lo == 'Quick Add Form' %}selected{% endif %}>Quick Add Form</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Lead_Source">Lead Source</label>
+                            <select id="Lead_Source" name="Lead_Source" required>
+                                {% set ls = form_data['Lead_Source'] %}
+                                <option value="Direct" {% if ls == 'Direct' %}selected{% endif %}>Direct</option>
+                                <option value="Google" {% if ls == 'Google' %}selected{% endif %}>Google</option>
+                                <option value="Organic Search" {% if ls == 'Organic Search' %}selected{% endif %}>Organic Search</option>
+                                <option value="Olark Chat" {% if ls == 'Olark Chat' %}selected{% endif %}>Olark Chat</option>
+                                <option value="Reference" {% if ls == 'Reference' %}selected{% endif %}>Reference</option>
+                                <option value="Welingak Website" {% if ls == 'Welingak Website' %}selected{% endif %}>Welingak Website</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Country">Country</label>
+                            <select id="Country" name="Country" required>
+                                {% set c = form_data['Country'] %}
+                                <option value="India" {% if c == 'India' %}selected{% endif %}>India</option>
+                                <option value="United States" {% if c == 'United States' %}selected{% endif %}>United States</option>
+                                <option value="United Kingdom" {% if c == 'United Kingdom' %}selected{% endif %}>United Kingdom</option>
+                                <option value="Australia" {% if c == 'Australia' %}selected{% endif %}>Australia</option>
+                                <option value="Canada" {% if c == 'Canada' %}selected{% endif %}>Canada</option>
+                                <option value="Other" {% if c == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="How_did_you_hear_about_X_Education">How did you hear about X Education?</label>
+                            <select id="How_did_you_hear_about_X_Education" name="How_did_you_hear_about_X_Education" required>
+                                {% set hear = form_data['How_did_you_hear_about_X_Education'] %}
+                                <option value="Advertisements_Media" {% if hear == 'Advertisements_Media' %}selected{% endif %}>Advertisements/Media</option>
+                                <option value="Search Engine" {% if hear == 'Search Engine' %}selected{% endif %}>Search Engine</option>
+                                <option value="Social Media" {% if hear == 'Social Media' %}selected{% endif %}>Social Media</option>
+                                <option value="Word Of Mouth" {% if hear == 'Word Of Mouth' %}selected{% endif %}>Word Of Mouth</option>
+                                <option value="Other" {% if hear == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="What_is_your_current_occupation">Current Occupation</label>
+                            <select id="What_is_your_current_occupation" name="What_is_your_current_occupation" required>
+                                {% set occ = form_data['What_is_your_current_occupation'] %}
+                                <option value="Housewife" {% if occ == 'Housewife' %}selected{% endif %}>Housewife</option>
+                                <option value="Student" {% if occ == 'Student' %}selected{% endif %}>Student</option>
+                                <option value="Working Professional" {% if occ == 'Working Professional' %}selected{% endif %}>Working Professional</option>
+                                <option value="Businessman" {% if occ == 'Businessman' %}selected{% endif %}>Businessman</option>
+                                <option value="Other" {% if occ == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Tags">Tags</label>
+                            <select id="Tags" name="Tags" required>
+                                {% set t = form_data['Tags'] %}
+                                <option value="Ineligible" {% if t == 'Ineligible' %}selected{% endif %}>Ineligible</option>
+                                <option value="Interested" {% if t == 'Interested' %}selected{% endif %}>Interested</option>
+                                <option value="Not Interested" {% if t == 'Not Interested' %}selected{% endif %}>Not Interested</option>
+                                <option value="Converted" {% if t == 'Converted' %}selected{% endif %}>Converted</option>
+                                <option value="Lost" {% if t == 'Lost' %}selected{% endif %}>Lost</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Lead_Quality">Lead Quality</label>
+                            <select id="Lead_Quality" name="Lead_Quality" required>
+                                {% set lq = form_data['Lead_Quality'] %}
+                                <option value="High" {% if lq == 'High' %}selected{% endif %}>High</option>
+                                <option value="Medium" {% if lq == 'Medium' %}selected{% endif %}>Medium</option>
+                                <option value="Low" {% if lq == 'Low' %}selected{% endif %}>Low</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Lead_Profile">Lead Profile</label>
+                            <select id="Lead_Profile" name="Lead_Profile" required>
+                                {% set lp = form_data['Lead_Profile'] %}
+                                <option value="Other" {% if lp == 'Other' %}selected{% endif %}>Other</option>
+                                <option value="Potential Lead" {% if lp == 'Potential Lead' %}selected{% endif %}>Potential Lead</option>
+                                <option value="Hot Lead" {% if lp == 'Hot Lead' %}selected{% endif %}>Hot Lead</option>
+                                <option value="Cold Lead" {% if lp == 'Cold Lead' %}selected{% endif %}>Cold Lead</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="predict-btn">🔮 Predict Lead Conversion</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Keep your interactive focus effects
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            element.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

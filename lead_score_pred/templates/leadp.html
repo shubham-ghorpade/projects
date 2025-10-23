@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lead Conversion Predictor</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    body { margin: 0; background: #0b0f19; color: #e6e9ef; min-height:100vh; display:grid; place-items:center; }
+    .wrap { width: min(920px, 92vw); padding: 24px; }
+    .card { background: #121827; border: 1px solid #1f2937; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+    h1 { margin: 0 0 8px; font-size: 26px; }
+    p.mute { margin-top: 0; color: #94a3b8; }
+    form { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 16px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; font-size: 13px; color: #9ca3af; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: #e5e7eb; }
+    input:focus, select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,0.15); }
+    button { padding: 12px 18px; border-radius: 12px; border: 0; background: #2563eb; color: white; font-weight: 600; cursor: pointer; }
+    button:hover { filter: brightness(1.05); }
+    .row { display: flex; gap: 12px; align-items: center; }
+    .result { margin-top: 18px; padding: 14px; border-radius: 12px; background: #0f172a; border: 1px solid #334155; display: none; }
+    code { background: #0b1220; padding: 2px 6px; border-radius: 6px; }
+    small.hint { color: #94a3b8; display: block; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Lead Conversion Predictor</h1>
+      <p class="mute">Enter values and submit to call your API at <code>/predict</code>. Categorical fields are dropdowns to prevent typos.</p>
+
+      <form id="leadForm">
+        <div class="full"><strong>Numerical fields</strong></div>
+        <div>
+          <label for="Do_Not_Email">Do_Not_Email (0 or 1)</label>
+          <input id="Do_Not_Email" type="number" min="0" max="1" step="1" placeholder="0" required />
+        </div>
+        <div>
+          <label for="TotalVisits">TotalVisits</label>
+          <input id="TotalVisits" type="number" step="1" placeholder="8" required />
+        </div>
+        <div>
+          <label for="Total_Time_Spent_on_Website">Total_Time_Spent_on_Website (seconds)</label>
+          <input id="Total_Time_Spent_on_Website" type="number" step="1" placeholder="286" required />
+        </div>
+        <div>
+          <label for="Page_Views_Per_Visit">Page_Views_Per_Visit</label>
+          <input id="Page_Views_Per_Visit" type="number" step="0.01" placeholder="8" required />
+        </div>
+        <div>
+          <label for="Asymmetrique_Activity_Score">Asymmetrique_Activity_Score</label>
+          <input id="Asymmetrique_Activity_Score" type="number" step="1" placeholder="14" required />
+        </div>
+        <div>
+          <label for="Asymmetrique_Profile_Score">Asymmetrique_Profile_Score</label>
+          <input id="Asymmetrique_Profile_Score" type="number" step="1" placeholder="16" required />
+        </div>
+
+        <div class="full" style="margin-top:8px;"><strong>Categorical fields</strong></div>
+
+        <div>
+          <label for="Asymmetrique_Activity_Index">Asymmetrique_Activity_Index</label>
+          <select id="Asymmetrique_Activity_Index" required>
+            <option value="" disabled selected>Select...</option>
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="Asymmetrique_Profile_Index">Asymmetrique_Profile_Index</label>
+          <select id="Asymmetrique_Profile_Index" required>
+            <option value="" disabled selected>Select...</option>
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="Lead_Origin">Lead_Origin</label>
+          <select id="Lead_Origin" required>
+            <option value="" disabled selected>Select...</option>
+            <option>API</option>
+            <option>Landing_Page_Submission</option>
+            <option>Lead_Add_Form</option>
+            <option>Lead_Import</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="Lead_Source">Lead_Source</label>
+          <select id="Lead_Source" required>
+            <option value="" disabled selected>Select...</option>
+            <option>Direct</option>
+            <option>Google</option>
+            <option>Organic_Search</option>
+            <option>Welingak_website</option>
+            <option>Referral_Sites</option>
+            <option>Olark_Chat</option>
+            <option>Facebook</option>
+            <option>Bing</option>
+            <option>Click2call</option>
+            <option>Press_Release</option>
+            <option>Blog</option>
+            <option>Pay_per_Click_Ads</option>
+            <option>WeLearn</option>
+            <option>YouTube</option>
+            <option>LinkedIn</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="Country">Country</label>
+          <select id="Country" required>
+            <option value="" disabled selected>Select...</option>
+            <option>India</option>
+            <option>United_States</option>
+            <option>United_Kingdom</option>
+            <option>UAE</option>
+            <option>Singapore</option>
+            <option>Saudi_Arabia</option>
+            <option>Australia</option>
+            <option>Germany</option>
+            <option>France</option>
+            <option>Canada</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="How_did_you_hear_about_X_Education">How_did_you_hear_about_X_Education</label>
+          <select id="How_did_you_hear_about_X_Education" required>
+            <option value="" disabled selected>Select...</option>
+            <option>Advertisements_Media</option>
+            <option>Word_Of_Mouth</option>
+            <option>Online_Search</option>
+            <option>Through_Recommendations</option>
+            <option>In_House_Email</option>
+            <option>Student_Referral</option>
+            <option>Multiple_Sources</option>
+            <option>Not_Sure</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="What_is_your_current_occupation">What_is_your_current_occupation</label>
+          <select id="What_is_your_current_occupation" required>
+            <option value="" disabled selected>Select...</option>
+            <option>Student</option>
+            <option>Working_Professional</option>
+            <option>Businessman</option>
+            <option>Housewife</option>
+            <option>Unemployed</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="Tags">Tags</label>
+          <select id="Tags" required>
+            <option value="" disabled selected>Select...</option>
+            <option>Ineligible</option>
+            <option>Closed_by_Pitch</option>
+            <option>Closed_by_Analyst</option>
+            <option>Will_revert_after_reading_the_email</option>
+            <option>Ringing</option>
+            <option>Busy</option>
+            <option>Lost_to_Competitor</option>
+            <option>Interested_in_other_courses</option>
+            <option>Already_a_student</option>
+            <option>Others</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="Lead_Quality">Lead_Quality</label>
+          <select id="Lead_Quality" required>
+            <option value="" disabled selected>Select...</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+            <option>Might_be</option>
+            <option>Not_Sure</option>
+            <option>Worst</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="Lead_Profile">Lead_Profile</label>
+          <select id="Lead_Profile" required>
+            <option value="" disabled selected>Select...</option>
+            <option>Potential_Lead</option>
+            <option>Lateral_Student</option>
+            <option>Dual_Specialization_Student</option>
+            <option>Other</option>
+            <option>Select</option>
+          </select>
+        </div>
+
+        <div class="full row" style="margin-top:6px;">
+          <button type="submit">Predict</button>
+          <button type="button" id="prefill">Prefill example</button>
+          <small class="hint">Your API should return a JSON with a numeric <code>prediction</code> or similar field.</small>
+        </div>
+
+        <div id="result" class="result"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function num(v){ const n = Number(v); return Number.isFinite(n) ? n : null; }
+
+    document.getElementById('prefill').addEventListener('click', () => {
+      const ex = {
+        Do_Not_Email: 0,
+        TotalVisits: 8,
+        Total_Time_Spent_on_Website: 286,
+        Page_Views_Per_Visit: 8,
+        Asymmetrique_Activity_Score: 14,
+        Asymmetrique_Profile_Score: 16,
+        Asymmetrique_Activity_Index: 'Medium',
+        Asymmetrique_Profile_Index: 'Medium',
+        Lead_Origin: 'API',
+        Lead_Source: 'Direct',
+        Country: 'India',
+        How_did_you_hear_about_X_Education: 'Advertisements_Media',
+        What_is_your_current_occupation: 'Housewife',
+        Tags: 'Ineligible',
+        Lead_Quality: 'High',
+        Lead_Profile: 'Other'
+      };
+      for (const k in ex) {
+        const el = document.getElementById(k);
+        if (!el) continue;
+        if (el.tagName === 'SELECT') el.value = ex[k];
+        else el.value = ex[k];
+      }
+    });
+
+    document.getElementById('leadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        Do_Not_Email: num(document.getElementById('Do_Not_Email').value),
+        TotalVisits: num(document.getElementById('TotalVisits').value),
+        Total_Time_Spent_on_Website: num(document.getElementById('Total_Time_Spent_on_Website').value),
+        Page_Views_Per_Visit: num(document.getElementById('Page_Views_Per_Visit').value),
+        Asymmetrique_Activity_Score: num(document.getElementById('Asymmetrique_Activity_Score').value),
+        Asymmetrique_Profile_Score: num(document.getElementById('Asymmetrique_Profile_Score').value),
+        Asymmetrique_Activity_Index: document.getElementById('Asymmetrique_Activity_Index').value,
+        Asymmetrique_Profile_Index: document.getElementById('Asymmetrique_Profile_Index').value,
+        Lead_Origin: document.getElementById('Lead_Origin').value,
+        Lead_Source: document.getElementById('Lead_Source').value,
+        Country: document.getElementById('Country').value,
+        How_did_you_hear_about_X_Education: document.getElementById('How_did_you_hear_about_X_Education').value,
+        What_is_your_current_occupation: document.getElementById('What_is_your_current_occupation').value,
+        Tags: document.getElementById('Tags').value,
+        Lead_Quality: document.getElementById('Lead_Quality').value,
+        Lead_Profile: document.getElementById('Lead_Profile').value
+      };
+
+      const resBox = document.getElementById('result');
+      resBox.style.display = 'block';
+      resBox.textContent = 'Submitting...';
+
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || ('HTTP ' + res.status));
+        resBox.innerHTML = '<strong>Prediction:</strong> ' + (data.prediction ?? JSON.stringify(data));
+      } catch (err) {
+        resBox.innerHTML = '<strong>Error:</strong> ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
