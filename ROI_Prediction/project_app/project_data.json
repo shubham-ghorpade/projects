@@ -1,0 +1,22 @@
+{
+    "columns": [
+      "Month",
+      "CPA",
+      "Revenue",
+      "Campaign_Type",
+      "Device_Type"
+    ],
+    "Campaign_Type": {
+      "LinkedIn": 0,
+      "Meta Ads": 1,
+      "Display": 2,
+      "Google Search": 3,
+      "Email": 4
+    },
+    "Device_Type": {
+      "Desktop": 0,
+      "Tablet": 1,
+      "Mobile": 2
+    }
+  }
+  
